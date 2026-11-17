@@ -1,4 +1,4 @@
-# Day 06 – Banking Document Intelligence Platform
+# Banking Document Intelligence Platform
 ## Enterprise AI System Design
 
 ## 1. Problem Statement
