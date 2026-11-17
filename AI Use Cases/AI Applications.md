@@ -1,4 +1,4 @@
-# Day 5 – Enterprise Banking AI Platform: Use Cases, Functional Requirements & Non-Functional Requirements
+# Enterprise Banking AI Platform: Use Cases, Functional Requirements & Non-Functional Requirements
 
 ## 1. Business Problem Statement
 
