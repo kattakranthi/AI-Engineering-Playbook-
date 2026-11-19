@@ -45,7 +45,7 @@ This is a multi-step agentic workflow because multiple tasks are executed in seq
 | User directs each step | Agent can decide the next step within defined boundaries |
 | Example: Summarize a PDF | Example: Investigate a financial transaction and create a case |
 
-**Interview answer:**
+
 
 A traditional LLM application primarily generates responses based on the prompt and context provided.
 
