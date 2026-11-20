@@ -289,8 +289,6 @@ Hybrid search combines:
 
 User query:
 
-"BlackRock retirement plan contribution limits"
-
 Keyword search finds documents containing exact words.
 
 Vector search finds semantically similar documents discussing contribution restrictions and plan limits.
