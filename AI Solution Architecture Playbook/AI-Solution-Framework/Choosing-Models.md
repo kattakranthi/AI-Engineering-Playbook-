@@ -326,7 +326,6 @@ The application should extract information, summarize documents, and answer ques
                  Final Answer
 ```
 
-## 10. Interview Questions and Answers
 
 ### Q1. How do you choose an LLM for an enterprise application?
 
