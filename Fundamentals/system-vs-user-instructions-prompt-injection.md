@@ -1,6 +1,6 @@
 # System vs. User Instructions and Prompt Injection
 
-**Study notes \| AI System Design \| 22 November 2026**
+| AI System Design \| 
 
 ## 1. The big idea
 
