@@ -618,7 +618,6 @@ flowchart TD
 
 ---
 
-## 23. Interview Questions and Answers
 
 ### Q1. What is consumer banking?
 
