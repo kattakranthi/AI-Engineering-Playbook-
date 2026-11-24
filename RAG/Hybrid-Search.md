@@ -14,7 +14,7 @@ Hybrid search combines the strengths of both approaches to retrieve more relevan
 
 A user searches:
 
-`What is BlackRock's policy for restricted investments?`
+`What is  policy for restricted investments?`
 
 - Keyword search finds documents containing exact terms such as "restricted investments."
 - Vector search finds semantically related content such as "investment restrictions" or "prohibited securities."
