@@ -1,5 +1,750 @@
 # OAuth 2.0, OpenID Connect (OIDC) and JWT 
 
+# OAuth 2.0 – Client, Server, Client ID, Client Secret, Scopes and Token Flow
+
+## 1. Introduction
+
+OAuth 2.0 is an authorization framework that allows applications to access protected resources without sharing user credentials with every application.
+
+It defines how an application obtains an access token and uses that token to access a protected API.
+
+Example:
+
+- Frontend: React Application
+- Identity Provider: Okta
+- Backend: Spring Boot REST API
+- Database: Cosmos DB
+
+## 2. Main Components
+
+OAuth 2.0 involves three important components.
+
+### 2.1 OAuth Client
+
+The client is the application requesting access to a protected resource.
+
+Examples:
+- React application
+- Mobile application
+- Spring Boot microservice
+- Server-side web application
+
+Responsibilities:
+- Initiates the authorization process.
+- Requests required scopes.
+- Obtains access tokens.
+- Sends access tokens to protected APIs.
+
+### 2.2 Authorization Server
+
+The Authorization Server authenticates the client and issues access tokens.
+
+Examples:
+- Okta
+- Keycloak
+- Microsoft Entra ID
+- Amazon Cognito
+
+Responsibilities:
+- Authenticates users when applicable.
+- Registers and manages client applications.
+- Validates client credentials.
+- Defines and evaluates scopes and permissions.
+- Issues access tokens.
+- Issues refresh tokens when supported.
+- Publishes public keys for JWT verification.
+
+### 2.3 Resource Server
+
+The Resource Server hosts protected APIs and validates access tokens.
+
+Example:
+- Spring Boot REST API
+
+Responsibilities:
+- Receives access tokens.
+- Validates JWT signatures.
+- Validates issuer and expiration.
+- Validates audience when configured.
+- Checks scopes and authorities.
+- Allows or denies API requests.
+
+## 3. Client vs Authorization Server vs Resource Server
+
+| Component | Example | Responsibility |
+|---|---|---|
+| OAuth Client | React Application | Requests access |
+| Authorization Server | Okta | Issues tokens |
+| Resource Server | Spring Boot API | Protects resources |
+
+Architecture:
+
+```text
+             User
+               |
+               v
+       React Application
+          OAuth Client
+               |
+               | Authorization Request
+               v
+        Okta Authorization Server
+               |
+               | Access Token
+               v
+       React Application
+               |
+               | Bearer Access Token
+               v
+       Spring Boot REST API
+          Resource Server
+               |
+               | Validated Request
+               v
+            Database
+```
+
+## 4. Client Registration
+
+Before an application can use OAuth, it must be registered with the Authorization Server.
+
+Example using Okta:
+
+1. Log in to the Okta Admin Console.
+2. Navigate to Applications.
+3. Create a new application integration.
+4. Select the appropriate OIDC application type.
+5. Configure redirect URIs.
+6. Configure allowed grant types.
+7. Configure required scopes and permissions.
+8. Register the application.
+9. Obtain the Client ID.
+10. Obtain a Client Secret if the application is a confidential client.
+
+The application registration establishes its identity and permitted authentication configuration.
+
+## 5. Client ID
+
+A Client ID uniquely identifies an application registered with the Authorization Server.
+
+Example:
+
+```text
+Client ID: mylifepath-web
+```
+
+Characteristics:
+
+- Generated during application registration.
+- Identifies the application.
+- Not considered confidential.
+- Included in authorization requests.
+- Used by the Authorization Server to identify the registered client.
+
+Think of Client ID as the application's username.
+
+## 6. Client Secret
+
+A Client Secret is a confidential credential used by a confidential OAuth client to authenticate itself to the Authorization Server.
+
+Example:
+
+```text
+Client ID: mylifepath-backend
+Client Secret: abc123-secret-value
+```
+
+Characteristics:
+
+- Generated for confidential clients.
+- Used when authenticating the client.
+- Must be protected.
+- Must never be exposed in frontend JavaScript.
+- Should be stored in a secrets manager.
+
+Examples of secret management systems:
+
+- AWS Secrets Manager
+- Azure Key Vault
+- HashiCorp Vault
+
+Think of Client Secret as the application's password.
+
+Never commit Client Secrets to GitHub.
+
+## 7. Public Client vs Confidential Client
+
+### Public Client
+
+A public client cannot securely protect a Client Secret.
+
+Examples:
+- React SPA
+- Mobile application
+- Desktop application
+
+Characteristics:
+- Has a Client ID.
+- Does not use a Client Secret for authentication.
+- Uses Authorization Code Flow with PKCE.
+- Runs in an environment where users can inspect application code.
+
+### Confidential Client
+
+A confidential client can securely protect its credentials.
+
+Examples:
+- Server-side Spring Boot application
+- Backend microservice
+- Server-side web application
+
+Characteristics:
+- Has a Client ID.
+- Can have a Client Secret.
+- Can authenticate itself to the Authorization Server.
+- Can use Client Credentials Flow for service-to-service communication.
+
+| Feature | Public Client | Confidential Client |
+|---|---|---|
+| Client ID | Yes | Yes |
+| Client Secret | No | Yes, typically |
+| Secure credential storage | Cannot protect a shared secret | Can protect credentials |
+| PKCE | Used for authorization code flow | Also supported and recommended where applicable |
+| Example | React SPA | Spring Boot backend |
+
+## 8. OAuth Scopes
+
+A scope represents a permission that a client requests to access a protected resource.
+
+Example:
+
+```text
+accounts:read
+accounts:write
+transactions:read
+admin:read
+```
+
+Example scope definitions:
+
+| Scope | Description |
+|---|---|
+| accounts:read | Read account information |
+| accounts:write | Update account information |
+| transactions:read | Read transaction details |
+| admin:read | Access administrative information |
+
+### Who Creates Scopes?
+
+The API owner or security administrator defines scopes in the Authorization Server configuration.
+
+For example, an administrator configures custom scopes in Okta.
+
+The client requests the scopes it needs.
+
+The Authorization Server evaluates whether the client or user is allowed to receive those scopes.
+
+Important:
+
+Requesting a scope does not automatically grant permission.
+
+The Authorization Server must authorize it, and the Resource Server must enforce it.
+
+## 9. Roles vs Scopes
+
+Roles and scopes are related but have different purposes.
+
+### Roles
+
+Roles represent a user's or application's responsibility.
+
+Examples:
+- CUSTOMER
+- ADMIN
+- OPERATIONS
+- AUDITOR
+
+### Scopes
+
+Scopes represent permissions to access API resources.
+
+Examples:
+- accounts:read
+- accounts:write
+- transactions:read
+
+Example:
+
+| Role | Scopes |
+|---|---|
+| CUSTOMER | accounts:read, transactions:read |
+| ADMIN | accounts:read, accounts:write, admin:read |
+| AUDITOR | accounts:read, transactions:read |
+
+The application can enforce authorization using roles, scopes, or both.
+
+## 10. Redirect URI
+
+A Redirect URI is the location where the Authorization Server redirects the user after authentication.
+
+Example:
+
+```text
+https://mylifepath.example.com/callback
+```
+
+The application registers this URI with the Authorization Server.
+
+During authorization, the client sends the redirect URI.
+
+The Authorization Server validates it against the registered URI.
+
+This prevents an attacker from redirecting authorization responses to an untrusted location.
+
+## 11. Authorization Endpoint
+
+The Authorization Endpoint is where the client sends the user to authenticate and authorize access.
+
+Example:
+
+```text
+https://your-okta-domain/oauth2/default/v1/authorize
+```
+
+It is used in authorization flows such as Authorization Code Flow.
+
+Typical parameters:
+
+```text
+client_id
+response_type
+redirect_uri
+scope
+state
+code_challenge
+code_challenge_method
+```
+
+## 12. Token Endpoint
+
+The Token Endpoint is where the client exchanges an authorization code or client credentials for tokens.
+
+Example:
+
+```text
+https://your-okta-domain/oauth2/default/v1/token
+```
+
+Common parameters depend on the grant type.
+
+Authorization Code:
+
+```text
+grant_type=authorization_code
+code=AUTHORIZATION_CODE
+redirect_uri=REGISTERED_REDIRECT_URI
+client_id=CLIENT_ID
+code_verifier=PKCE_CODE_VERIFIER
+```
+
+Client Credentials:
+
+```text
+grant_type=client_credentials
+scope=accounts:read
+```
+
+For a confidential client, client authentication is also required.
+
+## 13. Issuer vs Audience
+
+These are important JWT claims.
+
+### Issuer (iss)
+
+Identifies who issued the token.
+
+Example:
+
+```json
+{
+  "iss": "https://your-okta-domain/oauth2/default"
+}
+```
+
+### Audience (aud)
+
+Identifies the intended recipient of the token.
+
+Example:
+
+```json
+{
+  "aud": "mylifepath-api"
+}
+```
+
+The Resource Server should validate that the token was issued by the trusted issuer and intended for that API.
+
+## 14. JWT Claims
+
+JWT contains information called claims.
+
+Example payload:
+
+```json
+{
+  "sub": "user123",
+  "iss": "https://your-okta-domain/oauth2/default",
+  "aud": "mylifepath-api",
+  "scope": "accounts:read transactions:read",
+  "exp": 1795700000,
+  "iat": 1795696400
+}
+```
+
+Common claims:
+
+| Claim | Description |
+|---|---|
+| sub | Subject or user/service identity |
+| iss | Token issuer |
+| aud | Intended audience |
+| exp | Token expiration |
+| iat | Token issue time |
+| nbf | Token validity start time |
+| scope | Granted permissions |
+| jti | Unique token identifier |
+
+The actual claims depend on the Identity Provider and token configuration.
+
+## 15. State Parameter
+
+State is a random value generated by the client before starting an authorization request.
+
+The client sends it to the Authorization Server.
+
+The Authorization Server returns the same state value in the redirect response.
+
+The client verifies that the returned value matches the original value.
+
+Purpose:
+
+- Protects against Cross-Site Request Forgery (CSRF).
+- Correlates authorization requests and responses.
+
+## 16. Nonce Parameter
+
+Nonce is a random value used in OpenID Connect authentication requests.
+
+The Authorization Server includes the nonce in the ID Token.
+
+The client verifies the returned nonce.
+
+Purpose:
+
+- Helps protect against replay attacks.
+- Associates the ID Token with the original authentication request.
+
+## 17. PKCE
+
+PKCE stands for Proof Key for Code Exchange.
+
+It protects Authorization Code Flow, especially for public clients such as React and mobile applications.
+
+Two important values:
+
+- Code Verifier: A random secret generated by the client.
+- Code Challenge: A derived value sent in the authorization request.
+
+Flow:
+
+1. Client generates a random code verifier.
+2. Client calculates the code challenge.
+3. Client sends the code challenge to the Authorization Server.
+4. Authorization Server returns an authorization code.
+5. Client sends the authorization code and original code verifier to the Token Endpoint.
+6. Authorization Server verifies the code verifier against the original challenge.
+7. Authorization Server issues tokens if validation succeeds.
+
+PKCE prevents an attacker who intercepts an authorization code from redeeming it without the original verifier.
+
+## 18. Authorization Code Flow with PKCE
+
+Example:
+
+- Client: React Application
+- Authorization Server: Okta
+- Resource Server: Spring Boot API
+
+Steps:
+
+1. User opens the React application.
+2. React generates state, nonce, and PKCE values.
+3. React redirects the user to Okta's Authorization Endpoint.
+4. Okta authenticates the user.
+5. Okta redirects the browser to the registered Redirect URI with an authorization code and state.
+6. React validates state.
+7. React sends the authorization code and PKCE verifier to the Token Endpoint.
+8. Okta validates the code and verifier.
+9. Okta issues an Access Token and ID Token.
+10. React sends the Access Token to Spring Boot.
+11. Spring Security validates the token.
+12. Spring Boot authorizes and processes the request.
+
+## 19. Client Credentials Flow
+
+Client Credentials Flow is used for machine-to-machine communication.
+
+Example:
+
+- Payment Service: OAuth Client
+- Account Service: Resource Server
+- Okta: Authorization Server
+
+There is no end-user login.
+
+Steps:
+
+1. Payment Service authenticates itself using its Client ID and Client Secret.
+2. Payment Service requests an access token.
+3. It requests the required scope, such as accounts:read.
+4. Okta validates the client credentials and permissions.
+5. Okta issues an access token.
+6. Payment Service calls Account Service using the access token.
+7. Account Service validates the token and checks permissions.
+8. Account Service returns the requested data.
+
+Example token request:
+
+```http
+POST /oauth2/default/v1/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic BASE64_CLIENT_CREDENTIALS
+
+grant_type=client_credentials&scope=accounts:read
+```
+
+The token endpoint's client-authentication method must match the registered client configuration.
+
+## 20. Access Token vs ID Token vs Refresh Token
+
+| Token | Purpose | Used By |
+|---|---|---|
+| Access Token | Access protected APIs | OAuth Client |
+| ID Token | Communicate authenticated user identity | OIDC Client |
+| Refresh Token | Obtain a replacement access token | OAuth Client |
+
+### Access Token
+
+Used to call protected APIs.
+
+Example:
+
+```http
+Authorization: Bearer ACCESS_TOKEN
+```
+
+### ID Token
+
+Contains authentication information about the user.
+
+It is intended for the OIDC client, not as the API's access credential.
+
+### Refresh Token
+
+Allows the client to obtain a new access token without asking the user to authenticate again, subject to the provider's policies.
+
+Refresh tokens must be protected like other sensitive credentials.
+
+## 21. JWKS – JSON Web Key Set
+
+JWKS contains public keys published by the Authorization Server.
+
+The Resource Server uses these public keys to verify JWT signatures.
+
+Example:
+
+```text
+https://your-okta-domain/oauth2/default/v1/keys
+```
+
+Typical validation process:
+
+1. Spring Security receives a JWT.
+2. It identifies the signing key using the JWT key ID (kid).
+3. It obtains the corresponding public key from JWKS.
+4. It verifies the JWT signature.
+5. It validates configured claims such as issuer and expiration.
+6. It validates audience and other required claims when configured.
+
+The Resource Server does not need the Authorization Server's private signing key.
+
+## 22. Token Introspection
+
+Token introspection is an endpoint used to determine whether a token is active and retrieve associated token information.
+
+It is commonly used with opaque tokens.
+
+Example response:
+
+```json
+{
+  "active": true,
+  "scope": "accounts:read",
+  "client_id": "payment-service",
+  "sub": "payment-service"
+}
+```
+
+JWT Resource Servers commonly validate JWTs locally using signatures and claims instead of making an introspection request for every API call.
+
+## 23. Token Revocation
+
+Token revocation allows a client to request that a token be invalidated.
+
+Example situations:
+
+- User logs out.
+- Application credentials are compromised.
+- Access needs to be withdrawn.
+- A refresh token must be invalidated.
+
+The actual effect depends on the token type and Authorization Server implementation.
+
+A locally validated JWT may remain usable until expiration unless additional revocation or denylist mechanisms are implemented.
+
+## 24. OAuth Error Responses
+
+| Error | Meaning |
+|---|---|
+| invalid_request | Missing or invalid request parameter |
+| invalid_client | Client authentication failed |
+| invalid_grant | Invalid or expired authorization grant |
+| unauthorized_client | Client is not authorized for the grant type |
+| unsupported_grant_type | Unsupported OAuth grant |
+| invalid_scope | Requested scope is invalid or unavailable |
+| access_denied | Authorization was denied |
+
+HTTP status codes commonly returned:
+
+- 400 Bad Request
+- 401 Unauthorized
+- 403 Forbidden
+
+## 25. OAuth in Spring Boot
+
+Spring Boot can act as an OAuth2 Resource Server.
+
+### Maven Dependency
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+```
+
+### application.yml
+
+```yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://your-okta-domain/oauth2/default
+```
+
+### Security Configuration
+
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
+
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/accounts/**")
+                    .hasAuthority("SCOPE_accounts:read")
+                .anyRequest().authenticated()
+            )
+            .oauth2ResourceServer(oauth ->
+                oauth.jwt(Customizer.withDefaults())
+            );
+
+        return http.build();
+    }
+}
+```
+
+This configuration:
+
+1. Configures Spring Security as a Resource Server.
+2. Extracts bearer tokens from incoming requests.
+3. Validates JWT signatures and configured claims.
+4. Converts recognized scopes into authorities.
+5. Checks the required scope.
+6. Allows or rejects API access.
+
+Audience validation should be configured explicitly if the API requires a particular audience.
+
+## 26. OAuth Security Best Practices
+
+1. Use HTTPS for all OAuth communication.
+2. Never expose Client Secrets in frontend code.
+3. Store secrets in a secrets manager.
+4. Use Authorization Code Flow with PKCE for browser and mobile public clients.
+5. Use Client Credentials Flow for machine-to-machine access.
+6. Request only the scopes required by the application.
+7. Validate JWT signatures.
+8. Validate issuer and expiration.
+9. Validate audience for the intended API.
+10. Use short-lived access tokens where appropriate.
+11. Protect refresh tokens.
+12. Rotate client credentials.
+13. Validate Redirect URIs strictly.
+14. Use state to protect authorization redirects.
+15. Use nonce for OIDC authentication.
+16. Apply role- and scope-based authorization.
+17. Avoid logging tokens or secrets.
+18. Implement tenant-level authorization where applicable.
+
+## 27. Quick Reference
+
+| Question | Answer |
+|---|---|
+| Who creates Client ID? | Identity Provider during application registration |
+| Who creates Client Secret? | Identity Provider for confidential clients |
+| Who defines scopes? | API owner/security administrator |
+| Who requests scopes? | OAuth Client |
+| Who issues Access Tokens? | Authorization Server |
+| Who validates Access Tokens? | Resource Server |
+| Who authenticates users? | Identity Provider |
+| What is Redirect URI? | Client callback location |
+| What is Issuer? | Token issuing authority |
+| What is Audience? | Intended token recipient |
+| What is PKCE? | Authorization-code protection mechanism |
+| What is JWKS? | Set of public keys used for JWT verification |
+| What is State? | CSRF protection and request correlation |
+| What is Nonce? | OIDC replay protection and request correlation |
+| What is Client Credentials? | Machine-to-machine authorization flow |
+| What is Scope? | Permission requested for API access |
+
+## 28. Official References
+
+- OAuth 2.0: https://www.rfc-editor.org/rfc/rfc6749
+- OAuth 2.0 Security Best Current Practice: https://www.rfc-editor.org/rfc/rfc9700
+- OpenID Connect Core: https://openid.net/specs/openid-connect-core-1_0.html
+- OAuth 2.0 PKCE: https://www.rfc-editor.org/rfc/rfc7636
+- Okta Developer Documentation: https://developer.okta.com/docs/guides/
+- Spring Security Resource Server: https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html
+
+
 ## 1. What is OAuth 2.0?
 
 **Answer:**
