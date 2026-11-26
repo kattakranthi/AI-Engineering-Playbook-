@@ -13,7 +13,7 @@ Example:
 - Frontend: React Application
 - Identity Provider: Okta
 - Backend: Spring Boot REST API
-- Database: Cosmos DB
+- Database:  DB
 
 ## 2. Main Components
 
