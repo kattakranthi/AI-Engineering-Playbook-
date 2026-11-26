@@ -150,7 +150,7 @@ A Client Secret is a confidential credential used by a confidential OAuth client
 Example:
 
 ```text
-Client ID: mylifepath-backend
+Client ID: abc-backend
 Client Secret: abc123-secret-value
 ```
 
@@ -290,7 +290,7 @@ A Redirect URI is the location where the Authorization Server redirects the user
 Example:
 
 ```text
-https://mylifepath.example.com/callback
+https://app.example.com/callback
 ```
 
 The application registers this URI with the Authorization Server.
